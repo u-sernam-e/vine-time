@@ -1,0 +1,2 @@
+source /home/ya/emsdk-main/emsdk_env.sh
+em++ -o index.html source/**.cpp /home/ya/code/superpooplib/src/**.cpp -Os -Wall /home/ya/raylib-master/srcweb/libraylib.a -I /home/ya/raylib-master/srcweb/ -I headers/ -I /home/ya/code/superpooplib/headers/ -L /home/ya/raylib-master/srcweb/libraylib.a -s USE_GLFW=3 -s EXPORTED_RUNTIME_METHODS=ccall --shell-file /home/ya/raylib-master/srcweb/minshell.html -DPLATFORM_WEB --preload-file res
