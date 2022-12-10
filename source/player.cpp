@@ -164,7 +164,7 @@ void update(Player& p, Map& m, Zombies& z, bool apocalypse)
                     p.ms.push_back({getSystemTimeMil(), p.pos - Vector2{0, 10}, "not enough money", RED});
             }
         }
-        if (IsKeyDown(KEY_SPACE) && !(wallNextToCoord({static_cast<int>(p.pos.x)/16, static_cast<int>(p.pos.y)/16}, m.t) == Coord{-1, -1}) && (m.t[static_cast<int>(p.pos.x)/16][static_cast<int>(p.pos.y)/16] == Tile::EMPTY || m.t[GetMousePosition().x/16][GetMousePosition().y/16] == Tile::VINE))
+        if (IsKeyDown(KEY_SPACE) && !(wallNextToCoord({static_cast<int>(p.pos.x)/16, static_cast<int>(p.pos.y)/16}, m.t) == Coord{-1, -1}) && (m.t[static_cast<int>(p.pos.x)/16][static_cast<int>(p.pos.y)/16] == Tile::EMPTY || m.t[static_cast<int>(p.pos.x)/16][static_cast<int>(p.pos.y)/16] == Tile::VINE))
         { // place mine
             if (p.money >= 4)
             {
@@ -302,11 +302,11 @@ void draw(Player& p, Map& m, Zombies& z, bool apocalypse)
 
 void drawHud(Player& p, bool apocalypse)
 {
-    DrawTextEx(fontStrg().get("Hack-Regular.ttf"), (std::to_string(p.money) + "$").c_str(), {200, 225}, 20, 0, YELLOW);
+    DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), (std::to_string(p.money) + "$").c_str(), {200, 235}, 8, 0, YELLOW);
 
     for (auto& m : p.ms)
     {
-        Vector2 txtSize{MeasureTextEx(fontStrg().get("Hack-Bold.ttf"), m.txt.c_str(), 16, 0)};
-        DrawTextEx(fontStrg().get("Hack-Bold.ttf"), m.txt.c_str(), {m.pos.x - txtSize.x/2, m.pos.y - txtSize.y/2}, 12, 0, {m.col.r, m.col.g, m.col.b, static_cast<unsigned char>((3 - (getMilTimeSince(m.timeCreated) / 1512.0f)) * 255)});
+        Vector2 txtSize{MeasureTextEx(fontStrg().get("res/dogicapixel.ttf"), m.txt.c_str(), 8, 0)};
+        DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), m.txt.c_str(), {m.pos.x - txtSize.x/2, m.pos.y - txtSize.y/2}, 8, 0, {m.col.r, m.col.g, m.col.b, static_cast<unsigned char>((3 - (getMilTimeSince(m.timeCreated) / 1512.0f)) * 255)});
     }
 }

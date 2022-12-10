@@ -21,11 +21,9 @@ void updateDrawFrame()
 int main()
 {
 	SetWindowState(FLAG_MSAA_4X_HINT);
-	InitWindow(256, 256, "WELCOMD TO THE INTERWEBS");
+	InitWindow(256, 256, "Vine Time");
     InitAudioDevice();
 	initialize(G);
-
-	SetTargetFPS(144);
 
 #if defined(PLATFORM_WEB)
 	emscripten_set_main_loop(updateDrawFrame, 0, 1);

@@ -8,6 +8,7 @@ void changeScene(GameData& g, Scene s)
         case Scene::MAINMENU:
         {
             g.butts = {Button{{156, 206}, {80, 30}, txtrStrg().get("res/startbutton.png"), LIGHTGRAY, WHITE, GRAY, "", true}};
+            PlayMusicStream(mscStrg().get("res/Thetitle.wav"));
             break;
         }
         case Scene::INGAME:
@@ -17,7 +18,12 @@ void changeScene(GameData& g, Scene s)
             initialize(g.p);
             initialize(g.m);
             initialize(g.z);
-            g.timeStarted = getSystemTimeMil();            
+            g.timeStarted = getSystemTimeMil();
+            if (IsMusicStreamPlaying(mscStrg().get("res/Thetitle.wav")))
+                StopMusicStream(mscStrg().get("res/Thetitle.wav"));
+            if (IsMusicStreamPlaying(mscStrg().get("res/Peaceful.wav")))
+                StopMusicStream(mscStrg().get("res/Peaceful.wav"));
+            PlayMusicStream(mscStrg().get("res/Ps.wav"));
             break;
         }
         case Scene::GAMEOVER:
@@ -25,6 +31,8 @@ void changeScene(GameData& g, Scene s)
             g.butts = {Button{{156, 206}, {80, 30}, txtrStrg().get("res/restartbutton.png"), LIGHTGRAY, WHITE, GRAY, "", true}};
             StopSoundMulti();
             PlaySoundMulti(sndStrg().get("res/death.wav"));
+            StopMusicStream(mscStrg().get("res/Pano.wav"));
+            PlayMusicStream(mscStrg().get("res/Peaceful.wav"));
             break;
         }
     }
@@ -33,10 +41,13 @@ void changeScene(GameData& g, Scene s)
 void initialize(GameData& g)
 {
     txtrStrg().init({"res/error.png", "res/bullet.png", "res/playerhappy.png", "res/playerangry.png", "res/backgroundapocalypse.png", "res/backgroundnonapocalypse.png", "res/sidebar.png", "res/wall.png", "res/vine.png", "res/zombie.png", "res/mine.png", "res/turret.png", "res/gun.png", "res/bloodsplatter.png", "res/explosion.png", "res/apocalypsestartscreen.png", "res/gameoverscreen.png", "res/titlescreen.png", "res/startbutton.png", "res/restartbutton.png"});
-    fontStrg().init({"res/Hack-Regular.ttf", "res/Hack-Bold.ttf"});
+    fontStrg().init({"res/dogicapixel.ttf"});
     sndStrg().init({"res/errorsound.wav", "res/wall.wav", "res/vine.wav", "res/money.wav", "res/nomoney.wav", "res/shoot.wav", "res/explosion.wav", "res/levelup.wav", "res/turret.wav", "res/mineplace.wav", "res/minebeep.wav", "res/bulletwall.wav", "res/zombiehit.wav", "res/apocalypse.wav", "res/death.wav"});
-    mscStrg().init({"res/errormusic.wav"});
-    mscStrg().get("res/errormusic.wav").looping = true;
+    mscStrg().init({"res/errormusic.wav", "res/Thetitle.wav", "res/Ps.wav", "res/Pano.wav", "res/Peaceful.wav"});
+    mscStrg().get("res/Thetitle.wav").looping = true;
+    mscStrg().get("res/Ps.wav").looping = true;
+    mscStrg().get("res/Pano.wav").looping = true;
+    mscStrg().get("res/Peaceful.wav").looping = true;
 
     changeScene(g, Scene::MAINMENU);
 }
@@ -52,6 +63,7 @@ void update(GameData& g)
         {
             if (g.butts[0].released())
                 changeScene(g, Scene::INGAME);
+            UpdateMusicStream(mscStrg().get("res/Thetitle.wav"));
             break;
         }
         case Scene::INGAME:
@@ -61,7 +73,13 @@ void update(GameData& g)
                 g.apocalypse = true;
                 StopSoundMulti();
                 PlaySoundMulti(sndStrg().get("res/apocalypse.wav"));
+                StopMusicStream(mscStrg().get("res/Ps.wav"));
             }
+            if (getMilTimeSince(g.timeStarted) > 125000 && !IsMusicStreamPlaying(mscStrg().get("res/Pano.wav")))
+            {
+                PlayMusicStream(mscStrg().get("res/Pano.wav"));
+            }
+
 
             if (g.p.dead)
                 changeScene(g, Scene::GAMEOVER);
@@ -71,12 +89,16 @@ void update(GameData& g)
             if (g.apocalypse)
                 update(g.z, g.m, g.timeStarted + 125000, g.p.pos);
 
+            UpdateMusicStream(mscStrg().get("res/Ps.wav"));
+            UpdateMusicStream(mscStrg().get("res/Pano.wav"));
+
             break;
         }
         case Scene::GAMEOVER:
         {
             if (g.butts[0].released())
                 changeScene(g, Scene::INGAME);
+            UpdateMusicStream(mscStrg().get("res/Peaceful.wav"));
         }
     }
 }
@@ -88,7 +110,6 @@ void draw(GameData& g)
         case Scene::MAINMENU:
         {
             DrawTexture(txtrStrg().get("res/titlescreen.png"), 0, 0, WHITE);
-            DrawTextEx(fontStrg().get("res/Hack-Regular.ttf"), "Font - Hack by Chris Simpkins on dafont.com\nImages made with GIMP\nMusic made with Caustic 3.0\nSFX made with rFXGen\nMade with RayLib", {10, 10}, 10, 0, GRAY);
             break;
         }
         case Scene::INGAME:
@@ -106,22 +127,29 @@ void draw(GameData& g)
 
             if (!g.apocalypse)
             {
-                DrawTextEx(fontStrg().get("Hack-Regular.ttf"), "e-\nwall\n16$\n\nspace-\nvines\n2$", {196, 45}, 16, 0, WHITE);
+                DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), "e-\nwall\n16$\n\nspace-\nvines\n2$", {196, 45}, 8, 0, WHITE);
             }
             else
             {
-                DrawTextEx(fontStrg().get("Hack-Bold.ttf"), ("click-\bshoot\ne-\turret\n64$\n\nspace-\nmine\n4$\nlshift-\nupgrade gun\n32$\n(level " + std::to_string(g.p.gunLevel) + ")").c_str(), {196, 40}, 12, 0, WHITE);
+                DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), ("click-\nshoot\n\ne-\nturret\n64$\n\nspace-\nmine\n4$\n\nlshift-\nupgrade\ngun\n32$\n(lvl " + std::to_string(g.p.gunLevel) + ")").c_str(), {196, 40}, 8, 0, WHITE);
             }
 
             long long secondTime{((std::abs(getMilTimeSince(g.timeStarted) - 120000)) / 1000) % 60};
-            DrawTextEx(fontStrg().get("Hack-Regular.ttf"), ((getMilTimeSince(g.timeStarted) > 120000 ? "" : "-") + std::to_string(std::abs(getMilTimeSince(g.timeStarted) - 120000) / 60000) + ":" + (secondTime > 9 ? "" : "0") + std::to_string(secondTime)).c_str(), {200, 16}, 20, 0, RED);
+            DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), ((getMilTimeSince(g.timeStarted) > 120000 ? "" : "-") + std::to_string(std::abs(getMilTimeSince(g.timeStarted) - 120000) / 60000) + ":" + (secondTime > 9 ? "" : "0") + std::to_string(secondTime)).c_str(), {200, 16}, 8, 0, RED);
 
             if (getMilTimeSince(g.timeStarted) > 120000)
             {
+                Vector2 txtSize{MeasureTextEx(fontStrg().get("res/dogicapixel.ttf"), "Zombies!", 8, 0)};
                 if (getMilTimeSince(g.timeStarted) < 123000)
+                {
                     DrawTexture(txtrStrg().get("res/apocalypsestartscreen.png"), 0, 0, WHITE);
+                    DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), "Zombies!", {128 - txtSize.x/2, 30}, 8, 0, WHITE);
+                }
                 else if (getMilTimeSince(g.timeStarted) < 125000)
+                {
                     DrawTexture(txtrStrg().get("res/apocalypsestartscreen.png"), 0, 0, {255, 255, 255, static_cast<unsigned char>(255 - ((static_cast<float>(getMilTimeSince(g.timeStarted)) - 123000) / 2000) * 255)});
+                    DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), "Zombies!", {128 - txtSize.x/2, 30}, 8, 0, {255, 255, 255, static_cast<unsigned char>(255 - ((static_cast<float>(getMilTimeSince(g.timeStarted)) - 123000) / 2000) * 255)});
+                }
             }
 
             break;
@@ -129,7 +157,8 @@ void draw(GameData& g)
         case Scene::GAMEOVER:
         {
             DrawTexture(txtrStrg().get("res/gameoverscreen.png"), 0, 0, WHITE);
-            DrawTextEx(fontStrg().get("Hack-Regular.ttf"), "You have been infected!", {20, 20}, 20, 0, BLACK);
+            Vector2 txtSize{MeasureTextEx(fontStrg().get("res/dogicapixel.ttf"), "You have been infected!", 8, 0)};
+            DrawTextEx(fontStrg().get("res/dogicapixel.ttf"), "You have been infected!", {128 - txtSize.x/2, 30}, 8, 0, WHITE);
         }
     }
 
